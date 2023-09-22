@@ -5,7 +5,7 @@ Unlike repositories focused on project-specific software, ras-ros-core-control-m
 
 ## Module groups
 For purposes of modularity we try to group protocols in a specific group, if possible. The image below shows a typical marine control structure, where blocks may be represented by 1 or more software modules/nodes that fulfill the function. 
-![schematic-block-diagram-GCSF drawio](https://github.com/RAS-Delft/ras-ros-core-control-modules/assets/5917472/500c81e5-abe5-464f-97a8-3f27676f023a)
+![schematic-block-diagram-GCSF drawio](https://github.com/RAS-Delft/ras-ros-core-control-modules/assets/5917472/500c81e5-abe5-464f-97a8-3f27676f023a) <br>
 Note that one function group depicted as a block can have a wide range of complexities. The function can be done by a script with simple functionalities, or be run by a whole network of modules by itself, where it's structure and complexity can vary according to the project goal. 
 
 ## Python module groups in this repository:
