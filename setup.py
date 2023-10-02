@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'ras-ros-core-control-modules'
+package_name = 'ras_ros_core_control_modules'
 
 setup(
     name=package_name,
