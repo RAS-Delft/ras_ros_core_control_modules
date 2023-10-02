@@ -30,7 +30,7 @@ class PIDController():
 		self.error_integral = 0
 		self.last_error = 0
 		self.tlast = time.time()
-		self.available = 1
+		self.available = 1 # Semaphore to prevent multiple calls to compute() before the previous call has finished
 
 		# memory of last values for diagnostics
 
