@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<!-- Root tag with specified option: also allowing the use of xacro tools-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="titoneri">
+
+    <!-- This will include all the contents of example_include.xacro first. Go check it out! -->
+    <xacro:include filename="example_include.xacro" />
+
+    <!-- Properties-->
+    <xacro:property name="ship_length" value="0.97" />
+    <xacro:property name="ship_width" value="0.33" />
+    <xacro:property name="ship_height" value="0.22" />
+
+
+    <link name="hull_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${ship_length} ${ship_width} ${ship_height}" />
+            </geometry>
+            <material name="green">
+                <color rgba="0.2 1 0.2 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0.1" rpy="0 0 0"/>
+            <geometry>
+                <box size="${ship_length} ${ship_width} ${ship_height}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0.05" rpy="0 0 0"/>
+            <mass value="16" />
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="0.51" />
+        </inertial>
+    </link>
+
+    <!-- using xacro to create two links for both azimuth thrusters-->
+    <xacro:link_azimuth_thruster name = "thruster_sb_link" />
+    <xacro:link_azimuth_thruster name = "thruster_ps_link" />
+    
+    <joint name="thruster_sb_joint" type="revolute">
+        <origin xyz="-0.47  0.13 0" rpy="0 0 0"/>
+        <parent link="hull_link"/>
+        <child link="thruster_sb_link"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="${-pi*0.75}" upper="${pi*0.75}" velocity="2.0" effort="10"/> 
+    </joint>
+
+    <joint name="thruster_ps_joint" type="revolute">
+        <origin xyz="-0.47  -0.13 0" rpy="0 0 0"/>
+        <parent link="hull_link"/>
+        <child link="thruster_sb_link"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="${-pi*0.75}" upper="${pi*0.75}" velocity="2.0" effort="10"/> 
+    </joint>
+
+
+
+
+    <!--
+    <joint name="camera_joint" type="fixed">
+        <origin xyz="${arm_length} 0 ${arm_radius + 0.075}" rpy="0 0 0"/>
+        <parent link="arm_link"/>
+        <child link="camera_link"/>        
+    </joint>
+    -->
+    
+    <!-- camera_link describes the camera at the end of the arm -->
+    <!-- - It has multiple visual elements, which ultimately get combined together -->
+    <!-- - Even if we specify different materials, RViz will just colour them all the same as the first -->
+    <!-- - Although we could also specify multiple collision geometries, instead we just use a single box that encompasses the whole camera -->
+    <!--
+    <link name="camera_link">
+        <visual>
+            <origin xyz="-0.03 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.06 0.15 0.15" />
+            </geometry>
+            <material name="white" />
+        </visual>
+        <visual>
+            <origin xyz="0.03 0 0" rpy="0 ${pi/2} 0"/>
+            <geometry>
+                <cylinder length="0.06" radius="0.04" />
+            </geometry>
+            <material name="blue" />
+        </visual>
+        <collision>
+            <origin xyz="0.0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.12 0.15 0.15" />
+            </geometry>
+        </collision>
+        <xacro:inertial_box mass="0.1" x="0.12" y="0.15" z="0.15">
+            <origin xyz="0.0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+-->
+
+    <xacro:include filename="example_gazebo.xacro" />
+
+
+</robot>
