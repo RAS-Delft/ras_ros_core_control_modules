@@ -1,5 +1,5 @@
-# ras-ros-core-control-modules
-ras-ros-core-control-modules is a collection of core components specifically designed to serve as the foundational building blocks for implementing automated vessel control systems. Built upon the Robot Operating System (ROS), this repository encapsulates a suite of essential modules that enable the development of versatile and adaptable vessel control solutions developed in the Researchlab Autonomous Shipping (RAS) Delft.
+# ras_ros_core_control_modules
+ras_ros_core_control_modules is a collection of core components specifically designed to serve as the foundational building blocks for implementing automated vessel control systems. Built upon the Robot Operating System (ROS), this repository encapsulates a suite of essential modules that enable the development of versatile and adaptable vessel control solutions developed in the Researchlab Autonomous Shipping (RAS) Delft.
 
 Unlike repositories focused on project-specific software, ras-ros-core-control-modules emphasizes the creation of universally applicable tools that can be integrated into various maritime automation projects.
 
