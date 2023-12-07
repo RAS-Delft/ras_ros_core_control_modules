@@ -9,12 +9,15 @@ Also has some tools that help control, such as finding the smallest error angle 
 import numpy as np
 from scipy import interpolate
 import math
+import os
 
 def printTest():
 	"""
 	A test to check if the library is properly imported.
 	"""
 	print("ras_tf_lib1.py says hello!")
+	print('directory of this file: is', os.path.dirname(os.path.realpath(__file__)))
+
 
 def signed_shortest_angle_radians(angle1:float, angle2:float):
     """
@@ -25,7 +28,7 @@ def signed_shortest_angle_radians(angle1:float, angle2:float):
     angle2 (int or float): The second angle, in radians.
 
     Returns:
-    int or float: The signed shortest distance between the two angles, in radians. A negative value indicates a counter-clockwise direction, while a positive value indicates a clockwise direction.
+    int or float: The signed shortest distance between the two angles, in radians. Sign dictates direction of rotation.
     """
     distance = (angle1 - angle2) % (2 * math.pi)
     if distance > math.pi:
