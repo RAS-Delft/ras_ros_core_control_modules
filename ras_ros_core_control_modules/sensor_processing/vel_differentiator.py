@@ -2,16 +2,16 @@ import rospy
 from std_msgs.msg import Float32, Float32MultiArray
 from sensor_msgs.msg import NavSatFix
 import time
-import math
 import numpy as np
 import argparse
-import ras_tf_lib.ras_tf_lib1  as rtf
-from ras_tf_lib.ras_tf_lib1 import rascolors as rascolors
 
-parser = argparse.ArgumentParser(description='get input of ship ID')
-parser.add_argument('vessel_id', type=str, nargs=1,help='Vessel Identifier of the specified ship')
+parser = argparse.ArgumentParser(description='ROS2 control module for differentiation of position and heading to velocity')
+parser.add_argument("objectID", type=str,help="set vessel identifier")
+parser.add_argument('-r') # ROS2 arguments
 args, unknown = parser.parse_known_args()
 
+# Set constants
+OBJECT_ID = args.objectID
 MINIMUM_DIFFERENTIATE_TIMESTEP = 0.1 # seconds
 PERIOD_BROADCAST_STATUS = 5.0 #seconds
 
