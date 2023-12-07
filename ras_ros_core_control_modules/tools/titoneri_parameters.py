@@ -192,6 +192,26 @@ def TN_thrusterusage_to_force2(thrustertype:str):
         return lambda PWM_value: PWM_value*3.575
 
 
+def namespace_to_force2thrusterusage_array(name:str):
+    """
+    returns a 1xn_thruster array with force/actuator relations depending on the name of the vessel
+    """
+    if name == 'RAS_TN_OR':
+        force2Thrusterusage = [TN_force_to_thrusterusage1("aft_red"),TN_force_to_thrusterusage1("aft_red"),TN_force_to_thrusterusage1("bowThruster")]
+    else:
+        force2Thrusterusage = [TN_force_to_thrusterusage1("aft_black"),TN_force_to_thrusterusage1("aft_black"),TN_force_to_thrusterusage1("bowThruster")]
+
+    return force2Thrusterusage
+
+def namespace_to_thrusterusage2force_array(name:str):
+    """
+    returns a 1xn_thruster array with actuator/force relations depending on the name of the vessel
+    """
+    if name == 'RAS_TN_OR':
+        thrusterusage2Force = [TN_thrusterusage_to_force1("aft_red"),TN_thrusterusage_to_force1("aft_red"),TN_thrusterusage_to_force1("bowThruster")]
+    else:
+        thrusterusage2Force = [TN_thrusterusage_to_force1("aft_black"),TN_thrusterusage_to_force1("aft_black"),TN_thrusterusage_to_force1("bowThruster")]
+
 """ State space model parameters """
 
 def model_Mrb():
