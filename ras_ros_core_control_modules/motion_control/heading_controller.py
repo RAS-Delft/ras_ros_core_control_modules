@@ -32,8 +32,8 @@ class PIDController_rotationally(PIDController):
 
 class HeadingControllerNode(Node):
 	def __init__(self):
-		super.__init__('heading_controller')
-
+		super().__init__('heading_controller')
+		
 		# create PID controller
 		self.headingPID = PIDController_rotationally(0.32,0.0,0.0)# ki = 0.0962
 		self.headingPID.output_limits=[-0.63,0.63] # [N*m] NEW, referring to desired torque output
