@@ -57,7 +57,7 @@ class NavsatCartesianTransformNode(Node):
 
         # Statistics
         self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
-        self.timer_statistics_last = self.get_clock().now()
+        self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
         self.tracker_imu = 0
         self.tracker_navsatfix = 0
         self.tracker_timer1 = 0
@@ -115,13 +115,13 @@ class NavsatCartesianTransformNode(Node):
         """ On a single line, print the rates of all major callbacks in this script. """
 
         # Calculate passed time
-        now = self.get_clock().now()
+        now = self.get_clock().now().nanoseconds/1e9
         passed_time = now - self.timer_statistics_last
 
         # Calculate rates   
-        rate_navsatfix = self.tracker_navsatfix / passed_time.nanoseconds * 1e9
-        rate_imu = self.tracker_imu / passed_time.nanoseconds * 1e9
-        rate_timer1 = self.tracker_timer1 / passed_time.nanoseconds * 1e9
+        rate_navsatfix = self.tracker_navsatfix / passed_time
+        rate_imu = self.tracker_imu / passed_time
+        rate_timer1 = self.tracker_timer1 / passed_time
 
 		# Format information to string
         printstring = display_tools.terminal_fleet_module_string(OBJECT_ID, ['gnss_rate',rate_navsatfix,'hz'],['imu_rate',rate_imu,'hz'],['send_transform_rate',rate_timer1,'hz'])
