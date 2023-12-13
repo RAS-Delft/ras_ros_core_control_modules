@@ -40,8 +40,8 @@ class HeadingControllerNode(Node):
 		self.headingPID.integral_limits = [-1.0,1.0]
 		
 		# Set up publishers and subscribers
-		self.subscriber_reference = self.create_subscription(Float32,'reference/yaw',self.callback_reference,10)
-		self.subscriber_state = self.create_subscription(Float32,'state/yaw',self.callback_state,10)
+		self.subscriber_reference = self.create_subscription(Float32,'reference/heading',self.callback_reference,10)
+		self.subscriber_state = self.create_subscription(Float32,'telemetry/heading',self.callback_state,10)
 		self.publisher_pid_status = self.create_publisher(Float32MultiArray,'diagnostics/headingController/pid_status',10)
 		self.publisher_desired_torque = self.create_publisher(Float32,'reference/controlEffort/torqueZ',10)
 
