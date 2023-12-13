@@ -38,7 +38,7 @@ class ControlEffortAllocatorNode(Node):
 
 		# Statistics
 		self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
-		self.timer_statistics_last = self.get_clock().now()
+		self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
 		self.tracker_callback_torque = 0
 		self.tracker_callback_force_surge = 0
 		self.tracker_callback_run_allocationProtocol = 0
@@ -100,7 +100,7 @@ class ControlEffortAllocatorNode(Node):
 		"""
 
 		# Calculate passed time
-		now = self.get_clock().now()
+		now = self.get_clock().now().nanoseconds/1e9
 		passed_time = now - self.timer_statistics_last
 
 		# Calculate rates up to two decimals
