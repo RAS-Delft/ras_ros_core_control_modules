@@ -1,6 +1,7 @@
-import rospy
+import rclpy
 from std_msgs.msg import Float32, Float32MultiArray
 from sensor_msgs.msg import NavSatFix
+from rclpy.node import Node
 import time
 import numpy as np
 import argparse
@@ -35,16 +36,10 @@ class StreamingMovingAverage:
 			self.sum -= self.values.pop(0)
 		return float(self.sum) / len(self.values)
 	
-class DifferentiationNode():
-	def __init__(self,vessel_id_):
-
-
-		self.vessel_id = vessel_id_
-		self.node = rospy.init_node('differentiation_node', anonymous=True)
-		
-		# Look if vessel_id is a field of the rascolors class. Set self.color to the corresponding color or otherwise VESSEL_COLOR_DEFAULT
-		self.color = getattr(rascolors, self.vessel_id, rascolors.VESSEL_COLOR_DEFAULT)
-
+class DifferentiationNode(Node):
+	def __init__(self):
+		super().__init__('differentiation_node')
+	
 		# Set memory for differentiation purposes
 		self.previousPos = None # previous values
 		self.previousYaw = None
@@ -78,10 +73,10 @@ class DifferentiationNode():
 		self.filt_r = StreamingMovingAverage(8)
 
 		# Start publishers and subscribers
-		self.subscription_pos = rospy.Subscriber('/'+self.vessel_id+'/state/geopos',NavSatFix,self.input_pos_callback)
-		self.subscription_yaw = rospy.Subscriber('/'+self.vessel_id+'/state/yaw',Float32,self.input_yaw_callback)
-		self.publisher_vel = rospy.Publisher('/'+self.vessel_id+'/state/velocity',Float32MultiArray, queue_size=1)
-		self.publisher_vel_unfiltered = rospy.Publisher('/'+self.vessel_id+'/state/velocity_unfiltered',Float32MultiArray, queue_size=1)
+		self.subscription_pos = self.create_subscription(NavSatFix,'telemetry/gnss/fix',self.input_pos_callback,10)
+		self.subscription_yaw = self.create_subscription(Float32,'telemetry/heading',self.input_yaw_callback,10)
+		self.publisher_vel = self.create_publisher(Float32MultiArray, 'state/velocity', 10)
+		self.publisher_vel_unfiltered = self.create_publisher(Float32MultiArray, 'state/velocity_unfiltered', 10)
 		
 	def input_pos_callback(self, msg):
 		#print('position callback: '+"{:.5f}".format(msg.latitude)+' '+"{:.5f}".format(msg.longitude))
@@ -172,13 +167,10 @@ class DifferentiationNode():
 			self.busy = 0 # release this function availability 
 		
 	
-	def run(self):
-		rate = rospy.Rate(1000)  # Hz
-		while not rospy.is_shutdown():
-			now = time.time()
-			self.tracker_num_mainloop_callback += 1
+	def print_statistics(self):
+		""" On a single line, print the rates of all major callbacks in this script. """
 
-			if now - self.timestamp_broadcast_status > PERIOD_BROADCAST_STATUS:
+		# Calculate passed time
 				self.timestamp_broadcast_status = now
 
 				# Determine system frequencies rounded to two decimals
@@ -197,14 +189,18 @@ class DifferentiationNode():
 				self.tracker_num_pos_updates = 0
 				self.tracker_num_yaw_updates = 0
 				self.tracker_num_diffs = 0
+def main(args=None):
+	rclpy.init(args=args)
 
+	node = DifferentiationNode()
 
-			rate.sleep()
+	# Start the nodes processing thread
+	rclpy.spin(node)
+
+	# at termination of the code (generally with ctrl-c) Destroy the node explicitly
+	node.destroy_node()
+	rclpy.shutdown()
 
 
 if __name__ == '__main__':
-	try:
-		node = DifferentiationNode(args.vessel_id[0])
-		node.run()
-	except rospy.ROSInterruptException:
-		pass
+	main()
