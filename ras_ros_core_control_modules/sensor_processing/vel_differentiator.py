@@ -59,7 +59,7 @@ class DifferentiationNode(Node):
 		
 		self.updatedPos = 0 
 		self.updatedYaw = 0
-		self.busy = 0
+		self.differentiate_semaphore = 0
 		self.posVel = None 
 		self.yawVel = None
 		
@@ -107,26 +107,92 @@ class DifferentiationNode(Node):
 			print('----')
 
 	def differentiate(self):
-		if self.updatedPos and self.updatedYaw and not self.busy: # Check if both position and heading have had an update and another callback did not trigger this function yet.
-			
+		"""
+		Differentiates the position and heading data to get velocity data.
+		Applies a moving average filter to the velocies to reduce noise, and publishes the filtered and unfiltered velocities.
+		Some conditionals are in place to avoid differentiating with faulty data, such as with startup of the code or very small timesteps.
+		"""
+		if self.updatedPos and self.updatedYaw and not self.differentiate_semaphore: # Check if both position and heading have had an update and another callback did not trigger this function yet.
+			self.differentiate_semaphore = 1 # Block the use of this function by other callbacks until this function is finished
+			if self.previousTimeYaw and self.previousTimePos: # check if these values have initial values, else, do not differentiate but set them
+
+				delta_t_yaw = self.newTimeYaw -self.previousTimeYaw
+				delta_t_pos = self.newTimePos -self.previousTimePos
+
+				if delta_t_yaw>MINIMUM_DIFFERENTIATE_TIMESTEP and delta_t_pos>MINIMUM_DIFFERENTIATE_TIMESTEP:
+					# add to tracker
+					self.tracker_num_diffs += 1
+					
+					# Calculating angular velocity ----------------
+					delta_yaw = ras_geometry_tools.signed_shortest_angle_radians(self.newYaw,self.previousYaw)
+					yawVel = delta_yaw / delta_t_yaw
+					
+					# Calculating linear velocities ----------------
+					# Calculate the north-east displacement in meters
+					#d_ne = spherical_to_ne(self.previousPos[0], self.previousPos[1], self.newPos[0], self.newPos[1])
+					
+					dlat = self.newPos[0] - self.previousPos[0]
+					dlon = self.newPos[1] - self.previousPos[1]
+					dN,dE = ras_geometry_tools.d_latlong_to_d_northeast(dlat,dlon,self.previousPos[0])
+					
+					# Divide by timestep to get velocities north and east direction
+					vel_ne = np.array([ dN/delta_t_pos, dE/delta_t_pos])
+					
+					# Rotate linear velocities to get body fixed velocities
+					R = ras_geometry_tools.R_surf(-self.newYaw)
+					posVel = np.matmul(R,vel_ne)
+					
+					# Concatenate X Y and heading ----------------
+					vel = posVel.tolist()+[yawVel]
+					
+					# Filtering x y yaw with moving average filter  ----------------
+					vel_filtered = [0,0,0]
+					vel_filtered[0] = self.filt_u.process(vel[0])
+					vel_filtered[1] = self.filt_v.process(vel[1])
+					vel_filtered[2] = self.filt_r.process(vel[2])
+					
+					# Publish
+					msg = Float32MultiArray(data=vel_filtered)
+					self.publisher_vel.publish(msg) # Publish filtered velocity
+					msg = Float32MultiArray(data=vel)
+					self.publisher_vel_unfiltered.publish(msg) # Publish unfiltered velocity
+
+					# Finalizing - setting 'previousvalues' for the next iteration
+					self.previousTimeYaw = self.newTimeYaw
+					self.previousYaw = self.newYaw
+					self.previousTimePos = self.newTimePos
+					self.previousPos = self.newPos
+			else:
+				# If either of the previous values is None, set them to the current values (this is the case in the first iteration of the code)
+				self.previousTimeYaw = self.newTimeYaw
+				self.previousYaw = self.newYaw
+				self.previousTimePos = self.newTimePos
+				self.previousPos = self.newPos
+
+			self.differentiate_semaphore = 0 # release semaphore
+
+
+			'''
+			# Semaphohre blocking this function while it is in progress
+			# I do not know why I saw results indicating that multiple callbacks could do this. Implementing this semaphore fixed the issue, although more in depth research could be nice on this. 
+			# Seek to remove this blocking feature in the future if possible, or seek out to reproduce the issue. 
+			self.differentiate_semaphore = 1 # Semaphore for this function
+
 			self.updatedPos = 0 # Boolean if updated since last publication
 			self.updatedYaw = 0
-			
-			# Blocking another callback to start this function while it is still running.
-			# I do not know why I saw results indicating that multiple callbacks could do this. 
-			# Seek to remove this blocking feature in the future if possible, or seek out the 
-			self.busy = 1
-			
+
 			# Check if there are previous values existing on yaw and heading (In the first iteration(s) this is not the case, in which case these values equal 'None')
 			# Only differentiate after multiple measurements of heading and position have been recorded
 			if self.previousTimeYaw and self.previousTimePos:
-				
+				print('checkA')
 				# Calculate timestep for the measurements
 				delta_t_yaw = self.newTimeYaw -self.previousTimeYaw
 				delta_t_pos = self.newTimePos -self.previousTimePos
-				
+
+		
 				# Only run if a minimum timestep has passed (this is to avoid corrupted data due to occasional extremely small timesteps)
 				if delta_t_yaw>MINIMUM_DIFFERENTIATE_TIMESTEP and delta_t_pos>MINIMUM_DIFFERENTIATE_TIMESTEP:
+					print('checkB')
 					self.tracker_num_diffs += 1
 					# Calculating angular velocity ----------------
 					delta_yaw = ras_geometry_tools.signed_shortest_angle_radians(self.newYaw,self.previousYaw)
