@@ -20,12 +20,12 @@ from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import Command
 from launch_ros.parameter_descriptions import ParameterValue
 
-
 def generate_launch_description():
     ld = LaunchDescription()
 
     # Define the vesselids
-    vesselids = ['RAS_TN_DB','RAS_TN_RE','RAS_TN_GR','RAS_TN_OR','RAS_TN_LB','RAS_TN_YE','RAS_TN_PU']
+    #vesselids = ['RAS_TN_DB','RAS_TN_RE','RAS_TN_GR','RAS_TN_OR','RAS_TN_LB','RAS_TN_YE','RAS_TN_PU']
+    vesselids = ['RAS_TN_DB','RAS_TN_OR','RAS_TN_GR']
     ras_urdf_common_path = FindPackageShare('ras_urdf_common')
     default_model_path = PathJoinSubstitution(['urdf', 'titoneri.urdf.xacro'])
     
@@ -49,12 +49,9 @@ def generate_launch_description():
                                     }])
         ld.add_action(robot_state_publisher_node)
         
-
         # Start up various vessel control from vesselstack.launch.py, including simulator
         vesselnodes = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                get_package_share_directory('ras_ros_core_control_modules'),
-                '/vessel_sim.launch.py']),
+            PythonLaunchDescriptionSource([ get_package_share_directory('ras_ros_core_control_modules'),'/vessel_sim.launch.py']),
                 launch_arguments={'vessel_id': vesselid,
                                   'vessel_color':ras_display_tools.vesselcolors_rgb.get_normalized_string(vesselid) + " 0.8"}.items()
             )
