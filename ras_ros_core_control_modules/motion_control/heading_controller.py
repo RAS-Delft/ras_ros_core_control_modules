@@ -47,7 +47,7 @@ class HeadingControllerNode(Node):
 
 		# Statistics
 		self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
-		self.timer_statistics_last = self.get_clock().now()
+		self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
 		self.tracker_callback_reference = 0
 		self.tracker_callback_state = 0
 		self.tracker_callback_control = 0
@@ -77,7 +77,7 @@ class HeadingControllerNode(Node):
 		""" On a single line, print the rates of all major callbacks in this script. """
 
 		# Calculate passed time
-		now = self.get_clock().now()
+		now = self.get_clock().now().nanoseconds/1e9
 		passed_time = now - self.timer_statistics_last
 
 		# Calculate rates up to two decimals
