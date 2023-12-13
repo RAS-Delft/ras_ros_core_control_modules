@@ -40,7 +40,7 @@ class SurgeVelControllerNode(Node):
 
 		# Set up statistics
 		self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
-		self.timer_statistics_last = self.get_clock().now()
+		self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
 		self.tracker_callback_reference = 0
 		self.tracker_callback_state = 0
 		self.tracker_callback_control = 0
@@ -54,6 +54,9 @@ class SurgeVelControllerNode(Node):
 		self.PID.setState(msg.data[0])
 	
 	def run_controls(self):
+		# add to rate tracker
+		self.tracker_callback_control += 1
+		
 		# Calculate PID output
 		out = self.PID.compute()
 
@@ -63,7 +66,7 @@ class SurgeVelControllerNode(Node):
 
 	def print_statistics(self):
 		# Calculate passed time
-		now = self.get_clock().now()
+		now = self.get_clock().now().nanoseconds/1e9
 		passed_time = now - self.timer_statistics_last
 
 		# Calculate rates up to two decimals
