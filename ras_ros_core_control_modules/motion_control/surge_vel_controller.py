@@ -31,8 +31,8 @@ class SurgeVelControllerNode(Node):
 
 		# Set up publishers and subscribers
 		self.publisher_forceX = self.create_publisher(Float32,'reference/controlEffort/forceX',10)
-		self.subscriber_reference = self.create_subscription(Float32,'reference/velocity',self.reference_callback,10)
-		self.subscriber_state = self.create_subscription(Float32,'state/velocity',self.state_callback,10)
+		self.subscriber_reference = self.create_subscription(Float32MultiArray,'reference/velocity',self.reference_callback,10)
+		self.subscriber_state = self.create_subscription(Float32MultiArray,'state/velocity',self.state_callback,10)
 		self.publisher_pid_status = self.create_publisher(Float32MultiArray,'diagnostics/surgeVelocityController/pid_status',10)
 
 		# Set up timer for control loop
