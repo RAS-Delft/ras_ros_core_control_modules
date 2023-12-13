@@ -6,6 +6,9 @@ import time
 import numpy as np
 import argparse
 
+import ras_ros_core_control_modules.tools.geometry_tools as ras_geometry_tools
+import ras_ros_core_control_modules.tools.display_tools as ras_display_tools
+
 parser = argparse.ArgumentParser(description='ROS2 control module for differentiation of position and heading to velocity')
 parser.add_argument("objectID", type=str,help="set vessel identifier")
 parser.add_argument('-r') # ROS2 arguments
@@ -126,7 +129,7 @@ class DifferentiationNode(Node):
 				if delta_t_yaw>MINIMUM_DIFFERENTIATE_TIMESTEP and delta_t_pos>MINIMUM_DIFFERENTIATE_TIMESTEP:
 					self.tracker_num_diffs += 1
 					# Calculating angular velocity ----------------
-					delta_yaw = rtf.signed_shortest_angle_radians(self.newYaw,self.previousYaw)
+					delta_yaw = ras_geometry_tools.signed_shortest_angle_radians(self.newYaw,self.previousYaw)
 					yawVel = delta_yaw / delta_t_yaw
 					
 					# Calculating linear velocities ----------------
@@ -135,13 +138,13 @@ class DifferentiationNode(Node):
 					
 					dlat = self.newPos[0] - self.previousPos[0]
 					dlon = self.newPos[1] - self.previousPos[1]
-					dN,dE = rtf.d_latlong_to_d_northeast(dlat,dlon,self.previousPos[0])
+					dN,dE = ras_geometry_tools.d_latlong_to_d_northeast(dlat,dlon,self.previousPos[0])
 					
 					# Divide by timestep to get velocities north and east direction
 					vel_ne = np.array([ dN/delta_t_pos, dE/delta_t_pos])
 					
 					# Rotate linear velocities to get body fixed velocities
-					R = rtf.R_surf(-self.newYaw)
+					R = ras_geometry_tools.R_surf(-self.newYaw)
 					posVel = np.matmul(R,vel_ne)
 					
 					# Concatenate X Y and heading ----------------
