@@ -42,9 +42,10 @@ class ControlEffortAllocatorNode(Node):
 		self.tracker_callback_torque = 0
 		self.tracker_callback_force_surge = 0
 		self.tracker_callback_run_allocationProtocol = 0
+		self.torque = 0.0
+		self.force_surge = 0.0
 
-		self.timestamp_allocateF_last = 0
-
+		self.timestamp_allocateF_last_allocate = time.time()
 
 	def callback_torque(self,msg:Float32):
 		self.tracker_callback_torque += 1
@@ -77,7 +78,10 @@ class ControlEffortAllocatorNode(Node):
 			
 			# Calculate the absolute force and angle of the resultant force per thruster
 			force_abs = math.sqrt(force_x**2 + force_y**2)/2
-			force_angle = math.atan2(force_y,force_x)
+			if force_abs == 0:
+				force_angle = 0
+			else:
+				force_angle = math.atan2(force_y,force_x)
 			
 			# limit force_abs to max_thrust
 			if force_abs > max_thrust:
