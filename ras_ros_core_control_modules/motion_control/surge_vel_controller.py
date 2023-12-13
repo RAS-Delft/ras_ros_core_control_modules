@@ -86,10 +86,10 @@ class SurgeVelControllerNode(Node):
 		self.tracker_callback_control = 0
 		self.timer_statistics_last = now
 
-if __name__ == '__main__':
+def main(args=None):
 	rclpy.init(args=args)
 
-	node = SurgeVelControllerNode
+	node = SurgeVelControllerNode()
 
 	# Start the nodes processing thread
 	rclpy.spin(node)
@@ -97,3 +97,8 @@ if __name__ == '__main__':
 	# at termination of the code (generally with ctrl-c) Destroy the node explicitly
 	node.destroy_node()
 	rclpy.shutdown()
+
+
+if __name__ == '__main__':
+	main()
+	
