@@ -63,13 +63,6 @@ class DifferentiationNode(Node):
 		self.posVel = None 
 		self.yawVel = None
 		
-
-		# Diagnostics
-		self.tracker_num_pos_updates = 0
-		self.tracker_num_yaw_updates = 0
-		self.tracker_num_diffs = 0
-		self.tracker_num_mainloop_callback = 0
-		
 		# Filters
 		self.filt_u = StreamingMovingAverage(8)
 		self.filt_v = StreamingMovingAverage(8)
@@ -80,9 +73,16 @@ class DifferentiationNode(Node):
 		self.subscription_yaw = self.create_subscription(Float32,'telemetry/heading',self.input_yaw_callback,10)
 		self.publisher_vel = self.create_publisher(Float32MultiArray, 'state/velocity', 10)
 		self.publisher_vel_unfiltered = self.create_publisher(Float32MultiArray, 'state/velocity_unfiltered', 10)
+
+		# Diagnostics
+		self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
+		self.timer_status = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
+		self.tracker_num_pos_updates = 0
+		self.tracker_num_yaw_updates = 0
+		self.tracker_num_diffs = 0
+		self.tracker_num_mainloop_callback = 0
 		
 	def input_pos_callback(self, msg):
-		#print('position callback: '+"{:.5f}".format(msg.latitude)+' '+"{:.5f}".format(msg.longitude))
 		self.tracker_num_pos_updates += 1
 		self.newTimePos = time.time()
 		self.newPos = [msg.latitude,msg.longitude]
@@ -233,31 +233,35 @@ class DifferentiationNode(Node):
 			self.previousYaw = self.newYaw
 			self.previousTimePos = self.newTimePos
 			self.previousPos = self.newPos
-			self.busy = 0 # release this function availability 
+			self.differentiate_semaphore = 0 # release semaphore
+			'''
 		
 	
 	def print_statistics(self):
 		""" On a single line, print the rates of all major callbacks in this script. """
 
 		# Calculate passed time
-				self.timestamp_broadcast_status = now
+		now = self.get_clock().now().nanoseconds/1e9
+		passed_time = now - self.timer_statistics_last
 
-				# Determine system frequencies rounded to two decimals
-				freq_pos = round(self.tracker_num_pos_updates / PERIOD_BROADCAST_STATUS, 2)
-				freq_yaw = round(self.tracker_num_yaw_updates / PERIOD_BROADCAST_STATUS, 2)
-				freq_diff = round(self.tracker_num_diffs / PERIOD_BROADCAST_STATUS, 2)
+		# Determine system frequencies rounded to two decimals
+		freq_pos = round(self.tracker_num_pos_updates / passed_time, 2)
+		freq_yaw = round(self.tracker_num_yaw_updates / passed_time, 2)
+		freq_diff = round(self.tracker_num_diffs / passed_time, 2)
+		
+		# Format information to string
+		printstring = ras_display_tools.terminal_fleet_module_string(OBJECT_ID, ['freq_pos', freq_pos, 'Hz'], ['freq_yaw', freq_yaw, 'Hz'], ['freq_diff', freq_diff, 'Hz'])
+												
+		# Print
+		self.get_logger().info(printstring)
 
-				# Make strings of numbers without color if above zero and and rascolors.FAIL otherwise
-				freq_pos_str = rascolors.OKGREEN +str(freq_pos) + rascolors.NORMAL if freq_pos > 0 else rascolors.FAIL + str(freq_pos) + rascolors.NORMAL
-				freq_yaw_str = rascolors.OKGREEN +str(freq_yaw) + rascolors.NORMAL if freq_yaw > 0 else rascolors.FAIL + str(freq_yaw) + rascolors.NORMAL
-				freq_diff_str = rascolors.OKGREEN +str(freq_diff) + rascolors.NORMAL if freq_diff > 0 else rascolors.FAIL + str(freq_diff) + rascolors.NORMAL
+		# Reset trackers  
+		self.tracker_num_pos_updates = 0
+		self.tracker_num_yaw_updates = 0
+		self.tracker_num_diffs = 0
+		self.timer_statistics_last = now
 
-				# Print system state
-				print(' '+self.color + self.vessel_id + rascolors.NORMAL +' [velocity differentiator]['+str(round(time.time()-self.tStart,2)) + 's] freq_pos: ' + freq_pos_str + ' Hz, freq_yaw: ' + freq_yaw_str + ' Hz, freq_diff: ' + freq_diff_str + ' Hz')
 
-				self.tracker_num_pos_updates = 0
-				self.tracker_num_yaw_updates = 0
-				self.tracker_num_diffs = 0
 def main(args=None):
 	rclpy.init(args=args)
 
