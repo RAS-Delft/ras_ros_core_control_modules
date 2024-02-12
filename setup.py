@@ -26,7 +26,7 @@ setup(
         #(os.path.join('lib','python3.8',package_name,'tools'), glob(os.path.join(package_name,'control_effort_allocation','*.py'))),
 
         # import all launch files
-        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py'))),
+        #(os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py'))),
         
         ('lib/python3.8/site-packages/' + package_name + '/tools', [package_name+'/tools/geometry_tools.py',
                                                                     package_name+'/tools/titoneri_parameters.py',
