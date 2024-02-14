@@ -6,25 +6,9 @@ import pyproj
 from rclpy.qos import QoSProfile
 from rclpy.qos import QoSReliabilityPolicy
 from rclpy.qos import QoSHistoryPolicy
-import argparse
 
 # import ras_ros_core_control_modules/tools/display_tools package  
 import ras_ros_core_control_modules.tools.display_tools as display_tools
-
-# Process function arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("objectID", type=str,help="set vessel identifier")
-parser.add_argument("-d", "--datum", type=float, nargs=3, help="datum [lat, lon, heading]")
-parser.add_argument("-p", "--parent_frame", type=str, help="parent link frame")
-parser.add_argument("-c", "--child_frame", type=str, help="child link frame")
-parser.add_argument("-r") # ROS2 arguments
-args, unknown = parser.parse_known_args()
-
-DATUM = args.datum if args.datum else [52.00, 4.37,0.0]
-MAP_FRAME = args.parent_frame if args.parent_frame else 'map'
-BASE_LINK_FRAME = args.child_frame if args.child_frame else 'base_link'
-OBJECT_ID = args.objectID
-PERIOD_BROADCAST_STATUS = 5.0 # seconds
 
 class NavsatCartesianTransformNode(Node):
     """
@@ -33,7 +17,17 @@ class NavsatCartesianTransformNode(Node):
     """
 
     def __init__(self):
-        super().__init__('navsat_cartesian_transform')
+        super().__init__('navsat2cartesian_transform')
+        
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('datum', [52.00, 4.37,0.0]),
+				('map_frame', 'map'),
+                ('base_link_frame', 'base_link'),
+                ('period_broadcast_status', 5.0),
+				]
+        )
 
         # Define the QoS profile for the publisher
         qos_profile_control_data = QoSProfile(
@@ -53,10 +47,11 @@ class NavsatCartesianTransformNode(Node):
         # Make a transformer helper object from lat/lon to x/y
         # Currently hardcoded to the Dutch RD projection EPSG:28992
         self.geo_cart_transformer = pyproj.Transformer.from_crs('epsg:4326', 'epsg:28992')
-        self.origin_correction = self.geo_cart_transformer.transform(DATUM[1], DATUM[0])
+        datum = self.get_parameter('datum').get_parameter_value().double_array_value
+        self.origin_correction = self.geo_cart_transformer.transform(datum[1], datum[0])
 
         # Statistics
-        self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
+        self.timer_statistics = self.create_timer(self.get_parameter('period_broadcast_status').get_parameter_value().double_value, self.print_statistics)
         self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
         self.tracker_imu = 0
         self.tracker_navsatfix = 0
@@ -98,8 +93,8 @@ class NavsatCartesianTransformNode(Node):
         q = self.latest_imu.orientation
         transform = TransformStamped()
         transform.header.stamp = self.get_clock().now().to_msg()
-        transform.header.frame_id = MAP_FRAME
-        transform.child_frame_id = BASE_LINK_FRAME
+        transform.header.frame_id = self.get_parameter('map_frame').get_parameter_value().string_value
+        transform.child_frame_id = self.get_parameter('base_link_frame').get_parameter_value().string_value
         transform.transform.translation.x = x
         transform.transform.translation.y = y
         transform.transform.translation.z = 0.0
