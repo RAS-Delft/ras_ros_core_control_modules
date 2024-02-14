@@ -49,7 +49,7 @@ def generate_launch_description():
         executable='navsat_cartesian_transform',
         name='geo_cartesian_tf',
         namespace=vessel_id_value,
-        arguments=[vessel_id_value,'-d','52.00158915434494','4.371940750746264','0','-p','world','-c',[vessel_id_value,'_base_link']],
+        arguments=[vessel_id_value,'-d','52.00158915434494','4.371940750746264','0','-p','world','-c',[vessel_id_value,'/base_link']],
         output='screen',
         emulate_tty=True,
     )
@@ -78,7 +78,7 @@ def generate_launch_description():
     ld.add_action(joint_state_publisher_node)
 
     # Set up static transforms for the vessel's sensors -----------------------
-    baselink_arg = [LaunchConfiguration('vessel_id'), '_base_link']
+    baselink_arg = [LaunchConfiguration('vessel_id'), '/base_link']
 
     # placement of the sensors is a coarse measurement wrt the middle of the hatch - to be updated if ever need to be used accurately
     static_transform_node_gnss = Node(
@@ -86,7 +86,7 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='static_transform_publisher_sensor_gnss',
             namespace=vessel_id_value,
-            arguments = ['-0.02', '-0.09', '-0.13', '0', '0', '0', baselink_arg, [LaunchConfiguration('vessel_id'), '_gnss0']],
+            arguments = ['-0.02', '-0.09', '-0.13', '0', '0', '0', baselink_arg, [LaunchConfiguration('vessel_id'), '/gnss0']],
         )
     
     static_transform_node_imu = Node(
@@ -94,7 +94,7 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='static_transform_publisher_sensor_imu',
             namespace=vessel_id_value,
-            arguments = ['0.155', '0.0', '-0.23', '0', '0', '0', baselink_arg, [LaunchConfiguration('vessel_id'), '_imu0']],
+            arguments = ['0.155', '0.0', '-0.23', '0', '0', '0', baselink_arg, [LaunchConfiguration('vessel_id'), '/imu0']],
         )
     
     static_transform_node_camera = Node(
@@ -102,7 +102,7 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='static_transform_publisher_sensor_camera',
             namespace=vessel_id_value,
-            arguments = ['0.38', '0', '-0.09', '0', '0', '0', baselink_arg, [LaunchConfiguration('vessel_id'), '_cam0']],
+            arguments = ['0.38', '0', '-0.09', '0', '0', '0', baselink_arg, [LaunchConfiguration('vessel_id'), '/cam0']],
         )
     ld.add_action(static_transform_node_gnss)
     ld.add_action(static_transform_node_imu)

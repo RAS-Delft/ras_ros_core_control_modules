@@ -31,7 +31,7 @@ def generate_launch_description():
     
     # Launch vesselstack.launch.py for each vesselid
     for vesselid in vesselids:
-
+        vesselid_with_slash = vesselid + '/'
         # Make urdf description
         robot_description_content = None
         robot_description_content = ParameterValue(Command(['xacro ',
@@ -46,7 +46,14 @@ def generate_launch_description():
                                     namespace=vesselid,
                                     parameters=[{
                                           'robot_description': robot_description_content,
-                                    }])
+                                          'publish_frequency': 30.0,
+                                          'frame_prefix': vesselid_with_slash,
+                                    }],
+                                    remappings=[
+                                        ('joint_states', 'reference/actuation_prio'),
+#                                        ('/tf', 'tf')
+                                        ]
+                                    )
         ld.add_action(robot_state_publisher_node)
         
         # Start up various vessel control from vesselstack.launch.py, including simulator
