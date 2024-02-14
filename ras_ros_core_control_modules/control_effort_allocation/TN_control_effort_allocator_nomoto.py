@@ -113,7 +113,7 @@ class ControlEffortAllocatorNode(Node):
 		rate_run_allocationProtocol = round(self.tracker_callback_run_allocationProtocol/passed_time,2)
 
 		# Format information to string
-		printstring = ras_display_tools.terminal_fleet_module_string(OBJECT_ID, ['torque_rate',rate_torque,'hz'],['force_surge_rate',rate_force_surge,'hz'],['run_allocationProtocol_rate',rate_run_allocationProtocol,'hz'])
+		printstring = ras_display_tools.terminal_fleet_module_string(self.get_namespace()[1:], ['torque_rate',rate_torque,'hz'],['force_surge_rate',rate_force_surge,'hz'],['run_allocationProtocol_rate',rate_run_allocationProtocol,'hz'])
 
 		# Print
 		self.get_logger().info(printstring)

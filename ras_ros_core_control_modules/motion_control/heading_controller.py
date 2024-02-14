@@ -86,7 +86,7 @@ class HeadingControllerNode(Node):
 		rate_control = round(self.tracker_callback_control/passed_time,2)
 
 		# Format information to string
-		printstring = ras_display_tools.terminal_fleet_module_string(OBJECT_ID, ['reference_rate',rate_reference,'hz'],['state_rate',rate_state,'hz'],['control_rate',rate_control,'hz'])
+		printstring = ras_display_tools.terminal_fleet_module_string(self.get_namespace()[1:], ['reference_rate',rate_reference,'hz'],['state_rate',rate_state,'hz'],['control_rate',rate_control,'hz'])
 
 		# Print
 		self.get_logger().info(printstring)

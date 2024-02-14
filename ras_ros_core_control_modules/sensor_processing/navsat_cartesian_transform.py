@@ -124,7 +124,7 @@ class NavsatCartesianTransformNode(Node):
         rate_timer1 = self.tracker_timer1 / passed_time
 
 		# Format information to string
-        printstring = display_tools.terminal_fleet_module_string(OBJECT_ID, ['gnss_rate',rate_navsatfix,'hz'],['imu_rate',rate_imu,'hz'],['send_transform_rate',rate_timer1,'hz'])
+        printstring = display_tools.terminal_fleet_module_string(self.get_namespace()[1:],['gnss_rate',rate_navsatfix,'hz'],['imu_rate',rate_imu,'hz'],['send_transform_rate',rate_timer1,'hz'])
 
         # Print
         self.get_logger().info(printstring)

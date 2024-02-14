@@ -250,7 +250,7 @@ class DifferentiationNode(Node):
 		freq_diff = round(self.tracker_num_diffs / passed_time, 2)
 		
 		# Format information to string
-		printstring = ras_display_tools.terminal_fleet_module_string(OBJECT_ID, ['freq_pos', freq_pos, 'Hz'], ['freq_yaw', freq_yaw, 'Hz'], ['freq_diff', freq_diff, 'Hz'])
+		printstring = ras_display_tools.terminal_fleet_module_string(self.get_namespace()[1:], ['freq_pos', freq_pos, 'Hz'], ['freq_yaw', freq_yaw, 'Hz'], ['freq_diff', freq_diff, 'Hz'])
 												
 		# Print
 		self.get_logger().info(printstring)
