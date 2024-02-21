@@ -29,6 +29,11 @@ class NavsatCartesianTransformNode(Node):
 				]
         )
 
+        self.base_link_frame = self.get_parameter('base_link_frame').get_parameter_value().string_value
+        # Overwrite base_link_frame if it is set to 'base_link' AND the namespace is not empty (i.e. not the root namespace /)
+        if self.get_parameter('base_link_frame').get_parameter_value().string_value == 'base_link' and self.get_namespace() != '/':
+            self.base_link_frame = self.get_namespace()[1:] + '/base_link'     
+
         # Define the QoS profile for the publisher
         qos_profile_control_data = QoSProfile(
             reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
@@ -94,7 +99,7 @@ class NavsatCartesianTransformNode(Node):
         transform = TransformStamped()
         transform.header.stamp = self.get_clock().now().to_msg()
         transform.header.frame_id = self.get_parameter('map_frame').get_parameter_value().string_value
-        transform.child_frame_id = self.get_parameter('base_link_frame').get_parameter_value().string_value
+        transform.child_frame_id = self.base_link_frame
         transform.transform.translation.x = x
         transform.transform.translation.y = y
         transform.transform.translation.z = 0.0
