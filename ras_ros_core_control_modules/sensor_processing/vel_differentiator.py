@@ -4,20 +4,9 @@ from sensor_msgs.msg import NavSatFix
 from rclpy.node import Node
 import time
 import numpy as np
-import argparse
 
 import ras_ros_core_control_modules.tools.geometry_tools as ras_geometry_tools
 import ras_ros_core_control_modules.tools.display_tools as ras_display_tools
-
-parser = argparse.ArgumentParser(description='ROS2 control module for differentiation of position and heading to velocity')
-parser.add_argument("objectID", type=str,help="set vessel identifier")
-parser.add_argument('-r') # ROS2 arguments
-args, unknown = parser.parse_known_args()
-
-# Set constants
-OBJECT_ID = args.objectID
-MINIMUM_DIFFERENTIATE_TIMESTEP = 0.1 # seconds
-PERIOD_BROADCAST_STATUS = 5.0 #seconds
 
 class StreamingMovingAverage:
 	"""
@@ -26,6 +15,8 @@ class StreamingMovingAverage:
 	"""
 	def __init__(self, window_size):
 		self.window_size = window_size
+		
+
 		self.values = []
 		self.sum = 0
 
@@ -41,8 +32,16 @@ class StreamingMovingAverage:
 	
 class DifferentiationNode(Node):
 	def __init__(self):
-		super().__init__('differentiation_node')
+		super().__init__('pos_vel_differentiation_node')
 	
+		self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('period_broadcast_status', 5.0),
+				('minimum_differentiation_timestep',0.1),
+				]
+        )
+
 		# Set memory for differentiation purposes
 		self.previousPos = None # previous values
 		self.previousYaw = None
@@ -76,7 +75,7 @@ class DifferentiationNode(Node):
 
 		# Diagnostics
 		self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9
-		self.timer_status = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
+		self.timer_status = self.create_timer(self.get_parameter('period_broadcast_status').get_parameter_value().double_value, self.print_statistics)
 		self.tracker_num_pos_updates = 0
 		self.tracker_num_yaw_updates = 0
 		self.tracker_num_diffs = 0
@@ -119,7 +118,7 @@ class DifferentiationNode(Node):
 				delta_t_yaw = self.newTimeYaw -self.previousTimeYaw
 				delta_t_pos = self.newTimePos -self.previousTimePos
 
-				if delta_t_yaw>MINIMUM_DIFFERENTIATE_TIMESTEP and delta_t_pos>MINIMUM_DIFFERENTIATE_TIMESTEP:
+				if delta_t_yaw>self.get_parameter('minimum_differentiation_timestep').get_parameter_value().double_value and delta_t_pos>self.get_parameter('minimum_differentiation_timestep').get_parameter_value().double_value:
 					# add to tracker
 					self.tracker_num_diffs += 1
 					
@@ -191,7 +190,7 @@ class DifferentiationNode(Node):
 
 		
 				# Only run if a minimum timestep has passed (this is to avoid corrupted data due to occasional extremely small timesteps)
-				if delta_t_yaw>MINIMUM_DIFFERENTIATE_TIMESTEP and delta_t_pos>MINIMUM_DIFFERENTIATE_TIMESTEP:
+				if delta_t_yaw>self.get_parameter('minimum_differentiation_timestep').get_parameter_value().double_value and delta_t_pos>self.get_parameter('minimum_differentiation_timestep').get_parameter_value().double_value:
 					print('checkB')
 					self.tracker_num_diffs += 1
 					# Calculating angular velocity ----------------
