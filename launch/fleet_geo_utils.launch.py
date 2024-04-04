@@ -63,6 +63,22 @@ def generate_launch_description(vesselids_list = ['RAS_TN_DB']):
                                     )
         ld.add_action(robot_state_publisher_node)
 
+        ## Make another robot description publisher that gets jointstate from /reference/actuation
+        robot_state_publisher_node2 = Node(package='robot_state_publisher',
+                                    executable='robot_state_publisher',
+                                    namespace=vesselid,
+                                    parameters=[{
+                                          'robot_description': robot_description_content,
+                                          'publish_frequency': 30.0,
+                                          'frame_prefix': vesselid + '/',
+                                    }],
+                                    remappings=[
+                                        ('joint_states', 'reference/actuation'),
+                                        ]
+                                    )
+        ld.add_action(robot_state_publisher_node2)
+
+
         baselink_arg = vesselid+'/base_link'
 
         navsat_transform_node = Node(
