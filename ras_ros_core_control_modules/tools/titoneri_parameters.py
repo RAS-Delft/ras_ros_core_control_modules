@@ -45,7 +45,7 @@ def actuator_input_limits():
             2nd item: PB: RPS
             3rd item: Bow: normalized pulse width modulation [-1:1]
     """
-    return np.array([[-60,60],[-60,60],[-1.0,1.0]])
+    return np.array([[-60.0,60.0],[-60.0,60.0],[-1.0,1.0]])
 
 def actuator_orientation_limits():
     """ Returns the lower and upper limits of the actuator angles.
