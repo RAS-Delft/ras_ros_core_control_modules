@@ -88,9 +88,9 @@ def TN_force_to_thrusterusage1(thrustertype:str):
 	factor_red_thruster = 0.6584
 
 	if thrustertype == "aft_black":
-		return lambda f: np.sqrt(f/0.0009752)*np.sign(f)
+		return lambda f: np.sqrt(np.abs(f)/(0.0009752))*np.sign(f)
 	elif thrustertype == "aft_red":
-		return lambda f: np.sqrt(f/(0.0009752*factor_red_thruster))*np.sign(f)	
+		return lambda f: np.sqrt(np.abs(f)/(0.0009752*factor_red_thruster))*np.sign(f)
 	elif thrustertype == "bowThruster":
 		return lambda f: f/3.575
 
