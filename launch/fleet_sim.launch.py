@@ -20,7 +20,8 @@ def generate_launch_description():
             executable='turtleboatmain',
             name='turtleboat_sim',
             namespace=vesselid,
-            arguments=[vesselid,'-saux','false','-rpos','20'],
+            parameters=[{'rate_publish_position':20},
+                        {'rate_publish_heading':17}],
             output='screen',
             emulate_tty=True,
         )
