@@ -69,6 +69,11 @@ class ControlEffortAllocator_DP1(ControlEffortAllocatorNode):
 											  titoneri_parameters.TN_force_to_thrusterusage1(self.get_parameter('thruster_type').get_parameter_value().string_value),
 											  titoneri_parameters.TN_force_to_thrusterusage1('bowThruster')]
 
+		# Set force to actuation input relation # SB, PS, Bow
+		self.force_actuation_input_relation = [titoneri_parameters.TN_thrusterusage_to_force1(self.get_parameter('thruster_type').get_parameter_value().string_value),
+											   titoneri_parameters.TN_thrusterusage_to_force1(self.get_parameter('thruster_type').get_parameter_value().string_value),
+											   titoneri_parameters.TN_thrusterusage_to_force1('bowThruster')]
+
 		# Set the actuator input limits
 		self.thrust_limits = titoneri_parameters.actuator_input_limits()
 		self.force_allocation_limits = titoneri_parameters.force_allocation_limits()
@@ -95,18 +100,26 @@ class ControlEffortAllocator_DP1(ControlEffortAllocatorNode):
 		Send the theoretically controlled effort to the vehicle.
 		"""
 
+		# Make empty force vector of length 3x1
+		f_thrusters = np.zeros(3)
+
+		# Look up the forces per thruster
+		for i in range(3):
+			f_thrusters[i] = self.force_actuation_input_relation[i](self.u[i])
+
 		# Calculate the theoretical control effort
 		theoretical_control_effort = Wrench()
-		# tau = T*f
-  
+		tau = np.dot(self.T, f_thrusters)
 
-		theoretical_control_effort.force.x = tau[0]
-		theoretical_control_effort.force.y = tau[1]
-		theoretical_control_effort.torque.z = tau[2]
+		theoretical_control_effort.force.x = float(tau[0])
+		theoretical_control_effort.force.y = float(tau[1])
+		theoretical_control_effort.torque.z = float(tau[2])
 
 		# Publish the message
 		self.publisher_f_theoretical.publish(theoretical_control_effort)
 
+		# Print the theoretical control effort
+		#self.get_logger().info('Theoretical control effort: {}'.format(theoretical_control_effort))
 		
 	def check_allocation_requirements(self):
 		"""
