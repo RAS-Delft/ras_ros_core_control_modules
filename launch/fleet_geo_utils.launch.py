@@ -27,13 +27,9 @@ from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import Command
 from launch_ros.parameter_descriptions import ParameterValue
 
-def generate_launch_description(vesselids_list = ['RAS_TN_DB']):
+def generate_launch_description(vesselids = ['RAS_TN_DB','RAS_TN_OR','RAS_TN_GR']):
     ld = LaunchDescription()
 
-    print("vesselids_list: ",vesselids_list)
-    # Define the vesselids
-    #vesselids = ['RAS_TN_DB','RAS_TN_RE','RAS_TN_GR','RAS_TN_OR','RAS_TN_LB','RAS_TN_YE','RAS_TN_PU']
-    vesselids = ['RAS_TN_DB']#,'RAS_TN_OR','RAS_TN_GR']
     ras_urdf_common_path = FindPackageShare('ras_urdf_common')
     default_model_path = PathJoinSubstitution(['urdf', 'titoneri.urdf.xacro'])
     
