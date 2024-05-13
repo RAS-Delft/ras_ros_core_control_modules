@@ -18,3 +18,13 @@ Note that one function group depicted as a block can have a wide range of comple
 
 
 
+## Requirements:
+Pyproj:
+```
+pip install pyproj
+```
+
+Xacro
+```
+sudo apt-get update; sudo apt install ros-${ROS_DISTRO}-xacro
+```
