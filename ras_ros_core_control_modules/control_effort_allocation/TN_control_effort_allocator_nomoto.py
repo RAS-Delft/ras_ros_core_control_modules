@@ -4,7 +4,9 @@ import rclpy
 import argparse
 import time
 import math
-from std_msgs.msg import Float32, Float32MultiArray
+from std_msgs.msg import Float32
+from sensor_msgs.msg import JointState
+
 from rclpy.node import Node
 import ras_ros_core_control_modules.tools.titoneri_parameters as titoneri_parameters
 import ras_ros_core_control_modules.tools.display_tools as ras_display_tools
@@ -32,7 +34,7 @@ class ControlEffortAllocatorNode(Node):
 		self.forceToThrust = titoneri_parameters.namespace_to_force2thrusterusage_array(OBJECT_ID)
 
 		# Set up publishers and subscribers
-		self.publisher_actuation = self.create_publisher(Float32MultiArray,'reference/actuation',10)
+		self.publisher_actuation = self.create_publisher(JointState,'reference/actuation',10)
 		self.subscriber_torque = self.create_subscription(Float32,'reference/controlEffort/torqueZ',self.callback_torque,10)
 		self.subscriber_force_surge = self.create_subscription(Float32,'reference/controlEffort/forceX',self.callback_force_surge,10)
 
@@ -92,8 +94,13 @@ class ControlEffortAllocatorNode(Node):
 			aft_propeller_vel_starboard = self.forceToThrust[1](force_abs)*60
 
 			# Publish actuation
-			msg = Float32MultiArray()
-			msg.data = [aft_propeller_vel_portside,aft_propeller_vel_starboard,float('nan'),force_angle,force_angle]
+			msg = JointState()
+			msg.header.stamp = self.get_clock().now().to_msg()
+			msg.name = ['SB_aft_thruster_propeller','PS_aft_thruster_propeller','BOW_thruster_propeller','SB_aft_thruster_joint','PS_aft_thruster_joint']
+			msg.velocity = [aft_propeller_vel_starboard,aft_propeller_vel_portside,0.0,0.0]
+			msg.position = [0.0,0.0,0.0, force_angle, force_angle]
+			msg.effort = []
+
 			self.publisher_actuation.publish(msg)
 			
 			self.timestamp_allocateF_last_allocate = time.time()
