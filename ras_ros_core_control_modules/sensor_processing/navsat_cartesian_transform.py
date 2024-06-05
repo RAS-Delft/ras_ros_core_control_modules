@@ -6,6 +6,8 @@ import pyproj
 from rclpy.qos import QoSProfile
 from rclpy.qos import QoSReliabilityPolicy
 from rclpy.qos import QoSHistoryPolicy
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
 
 # import ras_ros_core_control_modules/tools/display_tools package  
 import ras_ros_core_control_modules.tools.display_tools as display_tools
@@ -18,6 +20,12 @@ class NavsatCartesianTransformNode(Node):
 
     def __init__(self):
         super().__init__('navsat2cartesian_transform')
+        custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
         
         self.declare_parameters(
             namespace='',
@@ -34,16 +42,9 @@ class NavsatCartesianTransformNode(Node):
         if self.get_parameter('base_link_frame').get_parameter_value().string_value == 'base_link' and self.get_namespace() != '/':
             self.base_link_frame = self.get_namespace()[1:] + '/base_link'     
 
-        # Define the QoS profile for the publisher
-        qos_profile_control_data = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=1
-        )
-
         self.tf_broadcaster = TransformBroadcaster(self)
-        self.navsatfix_subscription = self.create_subscription(NavSatFix, 'telemetry/gnss/fix', self.gnss_callback, qos_profile_control_data)
-        self.imu_subscription = self.create_subscription(Imu, 'telemetry/imu', self.imu_callback, qos_profile_control_data)
+        self.navsatfix_subscription = self.create_subscription(NavSatFix, 'telemetry/gnss/fix', self.gnss_callback, custom_qos_profile)
+        self.imu_subscription = self.create_subscription(Imu, 'telemetry/imu', self.imu_callback, custom_qos_profile)
 
         self.timer = self.create_timer(0.1, self.timer_callback)
         self.latest_navsatfix = None

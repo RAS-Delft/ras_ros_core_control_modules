@@ -6,6 +6,8 @@ import rclpy
 import numpy as np
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Wrench
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
 
 
 # import titoneri_parameters.py
@@ -49,6 +51,13 @@ class ControlEffortAllocator_DP1(ControlEffortAllocatorNode):
 	"""
 	def __init__(self):
 		super().__init__('dp_control_effort_allocator')
+		custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
+		
 
 		# Initialize the aft_thruster_type parameter that is 'black_model' by default
 		# This is used to look up the actuator force input relation later on
@@ -211,7 +220,6 @@ def main(args=None):
 	# at termination of the code (generally with ctrl-c) Destroy the node explicitly
 	node.destroy_node()
 	rclpy.shutdown()
-
 
 if __name__ == '__main__':
 	main()

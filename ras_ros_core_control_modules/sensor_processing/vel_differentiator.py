@@ -8,6 +8,9 @@ import numpy as np
 import ras_ros_core_control_modules.tools.geometry_tools as ras_geometry_tools
 import ras_ros_core_control_modules.tools.display_tools as ras_display_tools
 
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
+
 class StreamingMovingAverage:
 	"""
 	A discrete real-time moving average filter
@@ -33,6 +36,12 @@ class StreamingMovingAverage:
 class DifferentiationNode(Node):
 	def __init__(self):
 		super().__init__('pos_vel_differentiation_node')
+		custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
 	
 		self.declare_parameters(
             namespace='',
@@ -68,10 +77,10 @@ class DifferentiationNode(Node):
 		self.filt_r = StreamingMovingAverage(8)
 
 		# Start publishers and subscribers
-		self.subscription_pos = self.create_subscription(NavSatFix,'telemetry/gnss/fix',self.input_pos_callback,10)
-		self.subscription_yaw = self.create_subscription(Float32,'telemetry/heading',self.input_yaw_callback,10)
-		self.publisher_vel = self.create_publisher(Float32MultiArray, 'state/velocity', 10)
-		self.publisher_vel_unfiltered = self.create_publisher(Float32MultiArray, 'state/velocity_unfiltered', 10)
+		self.subscription_pos = self.create_subscription(NavSatFix,'telemetry/gnss/fix',self.input_pos_callback,custom_qos_profile)
+		self.subscription_yaw = self.create_subscription(Float32,'telemetry/heading',self.input_yaw_callback,custom_qos_profile)
+		self.publisher_vel = self.create_publisher(Float32MultiArray, 'state/velocity', custom_qos_profile)
+		self.publisher_vel_unfiltered = self.create_publisher(Float32MultiArray, 'state/velocity_unfiltered', custom_qos_profile)
 
 		# Diagnostics
 		self.timer_statistics_last = self.get_clock().now().nanoseconds/1e9

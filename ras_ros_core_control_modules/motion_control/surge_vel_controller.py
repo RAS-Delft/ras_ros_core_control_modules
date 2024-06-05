@@ -8,6 +8,10 @@ import argparse
 from ras_ros_core_control_modules.tools.control_tools import PIDController
 import ras_ros_core_control_modules.tools.display_tools as ras_display_tools
 
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
+
+
 # Get arguments
 parser = argparse.ArgumentParser(description='ROS2 control module for surge velocity control')
 parser.add_argument("objectID", type=str,help="set vessel identifier")
@@ -23,6 +27,12 @@ PERIOD_REPORT_PID_STATUS = 1.0 # [s]
 class SurgeVelControllerNode(Node):
 	def __init__(self):
 		super().__init__('surge_vel_controller')
+		custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
 
 		# Make PID controllers
 		self.PID = PIDController(21.0,0.0,0.0) # kp was 21.0 kd was 2.55
@@ -30,10 +40,10 @@ class SurgeVelControllerNode(Node):
 		self.PID.output_limits=[0.1,3.0] # Newtons of thrust from both aft thrusters combined
 
 		# Set up publishers and subscribers
-		self.publisher_forceX = self.create_publisher(Float32,'reference/controlEffort/forceX',10)
-		self.subscriber_reference = self.create_subscription(Float32MultiArray,'reference/velocity',self.reference_callback,10)
-		self.subscriber_state = self.create_subscription(Float32MultiArray,'state/velocity',self.state_callback,10)
-		self.publisher_pid_status = self.create_publisher(Float32MultiArray,'diagnostics/surgeVelocityController/pid_status',10)
+		self.publisher_forceX = self.create_publisher(Float32,'reference/controlEffort/forceX',custom_qos_profile)
+		self.subscriber_reference = self.create_subscription(Float32MultiArray,'reference/velocity',self.reference_callback,custom_qos_profile)
+		self.subscriber_state = self.create_subscription(Float32MultiArray,'state/velocity',self.state_callback,custom_qos_profile)
+		self.publisher_pid_status = self.create_publisher(Float32MultiArray,'diagnostics/surgeVelocityController/pid_status',custom_qos_profile)
 
 		# Set up timer for control loop
 		self.timer_control = self.create_timer(PERIOD_CONTROL, self.run_controls)

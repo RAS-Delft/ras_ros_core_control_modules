@@ -7,6 +7,8 @@ from std_msgs.msg import Float32, Float32MultiArray
 import ras_ros_core_control_modules.tools.display_tools as ras_display_tools
 from ras_ros_core_control_modules.tools.control_tools import PIDController
 import ras_ros_core_control_modules.tools.geometry_tools as ras_geometry_tools
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
 
 # Get arguments
 parser = argparse.ArgumentParser(description='ROS2 control module for heading control')
@@ -33,17 +35,23 @@ class PIDController_rotationally(PIDController):
 class HeadingControllerNode(Node):
 	def __init__(self):
 		super().__init__('heading_controller')
-		
+		custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
+
 		# create PID controller
 		self.headingPID = PIDController_rotationally(0.32,0.0,0.0)# ki = 0.0962
 		self.headingPID.output_limits=[-0.63,0.63] # [N*m] NEW, referring to desired torque output
 		self.headingPID.integral_limits = [-1.0,1.0]
 		
 		# Set up publishers and subscribers
-		self.subscriber_reference = self.create_subscription(Float32,'reference/heading',self.callback_reference,10)
-		self.subscriber_state = self.create_subscription(Float32,'telemetry/heading',self.callback_state,10)
-		self.publisher_pid_status = self.create_publisher(Float32MultiArray,'diagnostics/headingController/pid_status',10)
-		self.publisher_desired_torque = self.create_publisher(Float32,'reference/controlEffort/torqueZ',10)
+		self.subscriber_reference = self.create_subscription(Float32,'reference/heading',self.callback_reference,custom_qos_profile)
+		self.subscriber_state = self.create_subscription(Float32,'telemetry/heading',self.callback_state,custom_qos_profile)
+		self.publisher_pid_status = self.create_publisher(Float32MultiArray,'diagnostics/headingController/pid_status',custom_qos_profile)
+		self.publisher_desired_torque = self.create_publisher(Float32,'reference/controlEffort/torqueZ',custom_qos_profile)
 
 		# Statistics
 		self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)

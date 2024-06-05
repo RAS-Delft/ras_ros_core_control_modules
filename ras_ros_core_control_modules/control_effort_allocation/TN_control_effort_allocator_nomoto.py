@@ -6,6 +6,8 @@ import time
 import math
 from std_msgs.msg import Float32
 from sensor_msgs.msg import JointState
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
 
 from rclpy.node import Node
 import ras_ros_core_control_modules.tools.titoneri_parameters as titoneri_parameters
@@ -29,14 +31,21 @@ class ControlEffortAllocatorNode(Node):
 
 	def __init__(self):
 		super().__init__('nomoto_control_effort_allocator')
+		custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
 
 		# Get relations between actuation and forces of all thrusters
 		self.forceToThrust = titoneri_parameters.namespace_to_force2thrusterusage_array(OBJECT_ID)
 
+
 		# Set up publishers and subscribers
-		self.publisher_actuation = self.create_publisher(JointState,'reference/actuation',10)
-		self.subscriber_torque = self.create_subscription(Float32,'reference/controlEffort/torqueZ',self.callback_torque,10)
-		self.subscriber_force_surge = self.create_subscription(Float32,'reference/controlEffort/forceX',self.callback_force_surge,10)
+		self.publisher_actuation = self.create_publisher(JointState,'reference/actuation',custom_qos_profile)
+		self.subscriber_torque = self.create_subscription(Float32,'reference/controlEffort/torqueZ',self.callback_torque,custom_qos_profile)
+		self.subscriber_force_surge = self.create_subscription(Float32,'reference/controlEffort/forceX',self.callback_force_surge,custom_qos_profile)
 
 		# Statistics
 		self.timer_statistics = self.create_timer(PERIOD_BROADCAST_STATUS, self.print_statistics)
