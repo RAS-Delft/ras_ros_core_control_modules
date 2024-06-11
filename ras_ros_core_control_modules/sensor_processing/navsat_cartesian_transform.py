@@ -6,6 +6,8 @@ import pyproj
 from rclpy.qos import QoSProfile
 from rclpy.qos import QoSReliabilityPolicy
 from rclpy.qos import QoSHistoryPolicy
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
 
 # import ras_ros_core_control_modules/tools/display_tools package  
 import ras_ros_core_control_modules.tools.display_tools as display_tools
@@ -18,15 +20,21 @@ class NavsatCartesianTransformNode(Node):
 
     def __init__(self):
         super().__init__('navsat2cartesian_transform')
+        custom_qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            durability=QoSDurabilityPolicy.VOLATILE
+        )
         
         self.declare_parameters(
             namespace='',
             parameters=[
                 ('datum', [52.00, 4.37,0.0]),
-				('map_frame', 'map'),
+                ('map_frame', 'map'),
                 ('base_link_frame', 'base_link'),
                 ('period_broadcast_status', 5.0),
-				]
+                ]
         )
 
         self.base_link_frame = self.get_parameter('base_link_frame').get_parameter_value().string_value
@@ -34,16 +42,9 @@ class NavsatCartesianTransformNode(Node):
         if self.get_parameter('base_link_frame').get_parameter_value().string_value == 'base_link' and self.get_namespace() != '/':
             self.base_link_frame = self.get_namespace()[1:] + '/base_link'     
 
-        # Define the QoS profile for the publisher
-        qos_profile_control_data = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=1
-        )
-
         self.tf_broadcaster = TransformBroadcaster(self)
-        self.navsatfix_subscription = self.create_subscription(NavSatFix, 'telemetry/gnss/fix', self.gnss_callback, qos_profile_control_data)
-        self.imu_subscription = self.create_subscription(Imu, 'telemetry/imu', self.imu_callback, qos_profile_control_data)
+        self.navsatfix_subscription = self.create_subscription(NavSatFix, 'telemetry/gnss/fix', self.gnss_callback, custom_qos_profile)
+        self.imu_subscription = self.create_subscription(Imu, 'telemetry/imu', self.imu_callback, custom_qos_profile)
 
         self.timer = self.create_timer(0.1, self.timer_callback)
         self.latest_navsatfix = None
@@ -123,7 +124,7 @@ class NavsatCartesianTransformNode(Node):
         rate_imu = self.tracker_imu / passed_time
         rate_timer1 = self.tracker_timer1 / passed_time
 
-		# Format information to string
+        # Format information to string
         printstring = display_tools.terminal_fleet_module_string(self.get_namespace()[1:],['gnss_rate',rate_navsatfix,'hz'],['imu_rate',rate_imu,'hz'],['send_transform_rate',rate_timer1,'hz'])
 
         # Print
@@ -136,18 +137,22 @@ class NavsatCartesianTransformNode(Node):
         self.timer_statistics_last = now
 
 def main(args=None):
-	rclpy.init(args=args)
+    rclpy.init(args=args)
 
-	node = NavsatCartesianTransformNode()
+    node = NavsatCartesianTransformNode()
 
-	# Start the nodes processing thread
-	rclpy.spin(node)
-
-	# at termination of the code (generally with ctrl-c) Destroy the node explicitly
-	node.destroy_node()
-	rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        print(" Stopping cleanly")
+    except Exception as e:
+        print(f" An unexpected error occurred: {e}")
+    finally:
+        if rclpy.ok():
+            node.destroy_node()
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
-	main()
-	
+    main()
+    

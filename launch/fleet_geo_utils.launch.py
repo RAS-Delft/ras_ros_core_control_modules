@@ -44,20 +44,20 @@ def generate_launch_description(vesselids = ['RAS_TN_DB','RAS_TN_OR','RAS_TN_GR'
                                                         ' vesselcolor:="',ras_display_tools.vesselcolors_rgb.get_normalized_string(vesselid) + ' 0.9"',]),
                                                         value_type=str)
         
-        ## Publish the robot description
-        robot_state_publisher_node = Node(package='robot_state_publisher',
-                                    executable='robot_state_publisher',
-                                    namespace=vesselid,
-                                    parameters=[{
-                                          'robot_description': robot_description_content,
-                                          'publish_frequency': 30.0,
-                                          'frame_prefix': vesselid + '/',
-                                    }],
-                                    remappings=[
-                                        ('joint_states', 'reference/actuation_prio'),
-                                        ]
-                                    )
-        ld.add_action(robot_state_publisher_node)
+        # ## Publish the robot description
+        # robot_state_publisher_node = Node(package='robot_state_publisher',
+        #                             executable='robot_state_publisher',
+        #                             namespace=vesselid,
+        #                             parameters=[{
+        #                                   'robot_description': robot_description_content,
+        #                                   'publish_frequency': 30.0,
+        #                                   'frame_prefix': vesselid + '/',
+        #                             }],
+        #                             remappings=[
+        #                                 ('joint_states', 'reference/actuation_prio'),
+        #                                 ]
+        #                             )
+        # ld.add_action(robot_state_publisher_node)
 
         ## Make another robot description publisher that gets jointstate from /reference/actuation
         robot_state_publisher_node2 = Node(package='robot_state_publisher',
@@ -94,32 +94,32 @@ def generate_launch_description(vesselids = ['RAS_TN_DB','RAS_TN_OR','RAS_TN_GR'
 
 
         # placement of the sensors is a coarse measurement wrt the middle of the hatch - to be updated if ever need to be used accurately
-        static_transform_node_gnss = Node(
-                package='tf2_ros',
-                executable='static_transform_publisher',
-                name='static_transform_publisher_sensor_gnss',
-                namespace=vesselid,
-                arguments = ['-0.02', '-0.09', '-0.13', '0', '0', '0', baselink_arg, vesselid+'/gnss0'],
-            )
+        # static_transform_node_gnss = Node(
+        #         package='tf2_ros',
+        #         executable='static_transform_publisher',
+        #         name='static_transform_publisher_sensor_gnss',
+        #         namespace=vesselid,
+        #         arguments = ['-0.02', '-0.09', '-0.13', '0', '0', '0', baselink_arg, vesselid+'/gnss0'],
+        #     )
         
-        static_transform_node_imu = Node(
-                package='tf2_ros',
-                executable='static_transform_publisher',
-                name='static_transform_publisher_sensor_imu',
-                namespace=vesselid,
-                arguments = ['0.155', '0.0', '-0.23', '0', '0', '0', baselink_arg, vesselid+'/imu0'],
-            )
+        # static_transform_node_imu = Node(
+        #         package='tf2_ros',
+        #         executable='static_transform_publisher',
+        #         name='static_transform_publisher_sensor_imu',
+        #         namespace=vesselid,
+        #         arguments = ['0.155', '0.0', '-0.23', '0', '0', '0', baselink_arg, vesselid+'/imu0'],
+        #     )
         
-        static_transform_node_camera = Node(
-                package='tf2_ros',
-                executable='static_transform_publisher',
-                name='static_transform_publisher_sensor_camera',
-                namespace=vesselid,
-                arguments = ['0.38', '0', '-0.09', '0', '0', '0', baselink_arg, vesselid+'/cam0'],
-            )
+        # static_transform_node_camera = Node(
+        #         package='tf2_ros',
+        #         executable='static_transform_publisher',
+        #         name='static_transform_publisher_sensor_camera',
+        #         namespace=vesselid,
+        #         arguments = ['0.38', '0', '-0.09', '0', '0', '0', baselink_arg, vesselid+'/cam0'],
+        #     )
         
-        ld.add_action(static_transform_node_gnss)
-        ld.add_action(static_transform_node_imu)
-        ld.add_action(static_transform_node_camera)
+        # ld.add_action(static_transform_node_gnss)
+        # ld.add_action(static_transform_node_imu)
+        # ld.add_action(static_transform_node_camera)
 
     return ld
