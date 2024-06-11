@@ -21,20 +21,20 @@ class NavsatCartesianTransformNode(Node):
     def __init__(self):
         super().__init__('navsat2cartesian_transform')
         custom_qos_profile = QoSProfile(
-    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
-    		history=QoSHistoryPolicy.KEEP_LAST,
-    		depth=1,
-    		durability=QoSDurabilityPolicy.VOLATILE
-		)
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            durability=QoSDurabilityPolicy.VOLATILE
+        )
         
         self.declare_parameters(
             namespace='',
             parameters=[
                 ('datum', [52.00, 4.37,0.0]),
-				('map_frame', 'map'),
+                ('map_frame', 'map'),
                 ('base_link_frame', 'base_link'),
                 ('period_broadcast_status', 5.0),
-				]
+                ]
         )
 
         self.base_link_frame = self.get_parameter('base_link_frame').get_parameter_value().string_value
@@ -124,7 +124,7 @@ class NavsatCartesianTransformNode(Node):
         rate_imu = self.tracker_imu / passed_time
         rate_timer1 = self.tracker_timer1 / passed_time
 
-		# Format information to string
+        # Format information to string
         printstring = display_tools.terminal_fleet_module_string(self.get_namespace()[1:],['gnss_rate',rate_navsatfix,'hz'],['imu_rate',rate_imu,'hz'],['send_transform_rate',rate_timer1,'hz'])
 
         # Print
@@ -137,18 +137,22 @@ class NavsatCartesianTransformNode(Node):
         self.timer_statistics_last = now
 
 def main(args=None):
-	rclpy.init(args=args)
+    rclpy.init(args=args)
 
-	node = NavsatCartesianTransformNode()
+    node = NavsatCartesianTransformNode()
 
-	# Start the nodes processing thread
-	rclpy.spin(node)
-
-	# at termination of the code (generally with ctrl-c) Destroy the node explicitly
-	node.destroy_node()
-	rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        print(" Stopping cleanly")
+    except Exception as e:
+        print(f" An unexpected error occurred: {e}")
+    finally:
+        if rclpy.ok():
+            node.destroy_node()
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
-	main()
-	
+    main()
+    
