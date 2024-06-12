@@ -144,7 +144,7 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        print(" Stopping cleanly")
+        pass
     except Exception as e:
         print(f" An unexpected error occurred: {e}")
     finally:
